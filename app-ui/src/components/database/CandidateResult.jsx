@@ -40,13 +40,14 @@ import SendAllInvite from './SendAllInvite';
 
 
 
-const handleGetSkills = (skills) =>{
+const handleGetSkills = (skills,matched_skills) =>{
+  let matched = matched_skills || []
   if(skills.length>4){
      return (
        <div className='flex items-center flex-wrap gap-2'>
           {
            skills.slice(0,4).map((item,index) => (
-             <span key={index} className='p-0.5 px-2 text-sm bg-gray-200 rounded-xl'>{item}</span>
+             <span key={index} className={`p-0.5 px-2 ${matched.includes(item) ? 'bg-[#ffe991]' : 'text-gray-500 bg-gray-200'} text-sm rounded-xl`}>{item}</span>
            ))
           }
           <span className='p-0.5 px-2 text-sm bg-white border rounded-xl'>{skills.length-4}+</span>
@@ -56,9 +57,12 @@ const handleGetSkills = (skills) =>{
     return (
      <div className='flex items-center gap-2'>
      { 
-     skills.map((item,index) => (
-       <span key={index} className='p-0.5 px-2 text-sm bg-gray-200 rounded-xl'>{item}</span>
-     ))
+     skills.map((item,index) => {
+       let flag = matched.includes(item)
+       return (
+       <span key={index} className={`p-0.5 px-2 text-sm ${flag ? 'bg-[#ffe991]' : 'text-gray-500 bg-gray-200'} rounded-xl`}>{item}</span>
+       )
+     })
      }
      </div>
     )
@@ -500,18 +504,54 @@ function CandidateResult() {
                     ${index === 0 ? 'rounded-t-xl' : ''} 
                     ${index === paginatedResults.length - 1 ? 'rounded-b-xl' : ''} 
                     p-6 relative custom-shadow-1 flex items-start gap-4`}>
-                     {/* Circular Score Indicator with dynamic color */}
+                    
+
                      <div className="absolute top-2 right-4 flex items-center justify-center">
-                       {/* Matched Button with Star Icon */}
-                       <div className="bg-blue-50 border border-blue-200 rounded-full px-3 py-1.5 flex items-center gap-2 shadow-sm">
-                         {/* Star Icon */}
-                         <AutoAwesomeIcon style={{fontSize:'1.2rem'}} className='text-indigo-600'></AutoAwesomeIcon>
-                         <span className='text-sm text-indigo-500'>{(location.state.searchType === 'manually'?Number(item?.match_score):Number(item?.similarity_score)) || 50}%</span>
-                         {/* Gradient Text */}
-                         <span className="text-sm font-medium bg-gradient-to-r from-blue-700 via-indigo-800 to-purple-800 bg-clip-text text-transparent">
-                           Matched
-                         </span>
-                       </div>
+                       {(() => {
+                         const score = (location.state.searchType === 'manually' ? Number(item?.match_score) : Number(item?.relevance_score)) || 50;
+                         const isLowScore = score < 50;
+                         
+                         if (isLowScore) {
+                           // Circular design for scores < 50%
+                           return (
+                             <div className="relative w-14 h-14 flex items-center justify-center">
+                               <svg className="w-14 h-14 transform -rotate-90" viewBox="0 0 36 36">
+                                 <path
+                                   d="M18 2.0845
+                                     a 15.9155 15.9155 0 0 1 0 31.831
+                                     a 15.9155 15.9155 0 0 1 0 -31.831"
+                                   fill="none"
+                                   stroke="#e5e7eb"
+                                   strokeWidth="2"
+                                 />
+                                 <path
+                                   d="M18 2.0845
+                                     a 15.9155 15.9155 0 0 1 0 31.831
+                                     a 15.9155 15.9155 0 0 1 0 -31.831"
+                                   fill="none"
+                                   stroke="#ef4444"
+                                   strokeWidth="2"
+                                   strokeDasharray={`${score}, 100`}
+                                 />
+                               </svg>
+                               <div className="absolute inset-0 flex items-center justify-center">
+                                 <span className="text-xs font-medium text-red-500">{score}%</span>
+                               </div>
+                             </div>
+                           );
+                         } else {
+                           // Current design for scores >= 50%
+                           return (
+                             <div className="bg-blue-50 border border-blue-200 rounded-full px-3 py-1.5 flex items-center gap-2 shadow-sm">
+                               <AutoAwesomeIcon style={{fontSize:'1.2rem'}} className='text-indigo-600'></AutoAwesomeIcon>
+                               <span className='text-sm text-indigo-500'>{score}%</span>
+                               <span className="text-sm font-medium bg-gradient-to-r from-blue-700 via-indigo-800 to-purple-800 bg-clip-text text-transparent">
+                                 Matched
+                               </span>
+                             </div>
+                           );
+                         }
+                       })()}
                      </div>
 
                    {/* CheckBox  */}
@@ -529,7 +569,7 @@ function CandidateResult() {
                       {isValidURL(item?.contact_details?.portfolio_link) && <a href={item?.contact_details?.portfolio_link} target='_blank'> <img src={WEB} className='w-5 h-5'></img></a>}
                       </div>
                     </div>
-                    <div className='flex items-center mb-2 items-center gap-6'>
+                    <div className='flex items-center mb-2 gap-6'>
                        <div className='flex items-center gap-2'>
                          <BriefcaseBusiness size={16} className='text-[#4b5563]'></BriefcaseBusiness>
                          <span className='text-[15px] text-[#4b5563]'>{getExp(item?.total_experience)}</span>
@@ -569,7 +609,7 @@ function CandidateResult() {
                         item?.academic_details.length>0 && 
                         <div className='flex items-start gap-2'>
                           <span className='text-[#6B7280] text-[14px]'>Education:</span>
-                          <span className='text-[14px]'>{item?.academic_details[0]?.education}</span>
+                          <span className={`text-[14px] ${item?.match_details?.matched_education.includes(item?.academic_details[0]?.education) && "bg-[#ffe991]"}`}>{item?.academic_details[0]?.education}</span>
                          </div>
                       }
                       <div className='flex items-center gap-2'>
@@ -579,7 +619,7 @@ function CandidateResult() {
                       <div className='flex flex-col gap-1'>
                          <span className='text-[#6B7280] text-[14px]'>Skills:</span>
                          {
-                           handleGetSkills(item?.skills)
+                           handleGetSkills(item?.skills, item?.match_details?.matched_skills)
                          }
                       </div>
                     </div>
@@ -744,7 +784,7 @@ function CandidateResult() {
                    <div className='flex flex-wrap items-center gap-2'>
                        {
                         previewCandidate?.skills?.map((item,index) => (
-                          <span key={index} className='text-[13px] py-0.5 px-2 rounded-xl bg-gray-200'>
+                          <span key={index} className={`text-[13px] py-0.5 px-2 rounded-xl ${previewCandidate?.match_details?.matched_skills.includes(item) ? 'bg-[#ffe991]' : 'bg-gray-200'}`}>
                             {item}
                           </span>
                         ))

@@ -57,7 +57,7 @@ function SearchCandidate() {
         ...payload
        })
       console.log('result data----->',response.data)
-      if(!response || !response.data || response.data.length === 0 || !response.data[0] || !response.data[0].results ||  response.data[0].results.length === 0){
+      if(!response || !response.data || response.data.length === 0){
         toast.error("There is no search results for given keywords.")
       } else{
         navigate('/recruiter/searchresult',{state:{candidate_result:response.data,payload,searchType:'manually'}})
