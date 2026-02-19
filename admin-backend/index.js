@@ -105,8 +105,22 @@ app.use((err,req,res,next)=>{
     })
 })
 
+const startServer = async () => {
+    try{
+      await connect()
+      app.listen(port,()=>{
+        connect()
+        console.log("connected on port:8000 to backend!")
+      })
 
-app.listen(port,()=>{
-    connect()
-    console.log("connected on port:8000 to backend!")
-})
+    }catch(err){
+      console.log("Failed to start server",err)
+      process.exit(1)
+    }
+}
+
+startServer()
+
+
+
+
