@@ -65,7 +65,12 @@ app.use(express.json())
 
 const connect=async ()=>{
     try{
-        await mongoose.connect(process.env.MONGO)
+        await mongoose.connect(process.env.MONGO, 
+        {
+                serverSelectionTimeoutMS: 30000,
+                socketTimeoutMS: 45000,
+                family: 4, // 🔥 critical for VPS DNS issues
+        })
         console.log("connected to mongodb!")
     }catch(err){
         throw err
